@@ -47,27 +47,29 @@ public class BankersAlgorithm{
         else{
             System.out.println("System in UNSAFE state.");
         }
-        obj.resourceRelease(processes, available);
         
-        System.out.println("Release resources? (Enter 0 or 1)");
-        byte input = test.nextByte();
-        if(input == 1){
-            System.out.print("Enter process number to release resources: ");
-            int releaseProcessID = test.nextInt();
-            System.out.print("Enter release details: ");
-            int[] releaseArr = new int[resources];
-            for(int i = 0; i < resources; i++){
-                releaseArr[i] = test.nextInt();
+        if(obj.isSafe()){
+            System.out.println("System in SAFE state.");
+            System.out.print("The safety sequence is as follows: ");
+            for(int i = 0; i < processes; i++){
+                System.out.print("P" + obj.sequence[i]);
+                if(i != processes - 1){
+                    System.out.print(" -> ");
+                }
             }
-            obj.resourceRelease(releaseProcessID, releaseArr);
+            System.out.println();
+            
+            obj.resourceRelease();
         }
-        
+        else{
+            System.out.println("System in UNSAFE state. Cannot execute sequence.");
+        }        
         System.out.println("Request a new process? (Enter 0 or 1)");
         byte requestInput = test.nextByte();
         if(requestInput == 0){
             System.out.println("Program terminated.");
         }
-        else if(input == 1){
+        else if(requestInput == 1){
             System.out.print("Enter process number: ");
             int processID = test.nextInt();
             System.out.print("Enter request details: ");
