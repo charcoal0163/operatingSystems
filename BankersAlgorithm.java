@@ -43,21 +43,6 @@ public class BankersAlgorithm{
                 }
             }
             System.out.println();
-        }
-        else{
-            System.out.println("System in UNSAFE state.");
-        }
-        
-        if(obj.isSafe()){
-            System.out.println("System in SAFE state.");
-            System.out.print("The safety sequence is as follows: ");
-            for(int i = 0; i < processes; i++){
-                System.out.print("P" + obj.sequence[i]);
-                if(i != processes - 1){
-                    System.out.print(" -> ");
-                }
-            }
-            System.out.println();
             
             obj.resourceRelease();
         }
