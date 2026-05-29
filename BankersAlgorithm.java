@@ -63,6 +63,7 @@ public class BankersAlgorithm{
         }
         else{
             System.out.println("System in UNSAFE state. Cannot execute sequence.");
+            return;
         }        
         System.out.println("Request a new process? (Enter 0 or 1)");
         byte requestInput = test.nextByte();
