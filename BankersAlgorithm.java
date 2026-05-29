@@ -1,72 +1,123 @@
 package bankersalgorithm;
-import java.util.Scanner;
-public class BankersAlgorithm{
-    public static void main(String[] args) {
-        Scanner test = new Scanner(System.in);
-        System.out.print("Enter the number of processes: ");
-        int processes = test.nextInt();
-        System.out.print("Enter the number of resource types: ");
-        int resources = test.nextInt();
-        
-        int[][] alloc = new int[processes][resources];
-        System.out.println("Enter the Allocation Matrix:");
+class algorithm{
+    int processes;
+    int resources;
+    int[][] alloc;
+    int[][] need;
+    int[][] max;
+    int[] available;
+    boolean[] finish;
+    int[] sequence;
+
+    public algorithm(int processes, int resources, int[][] max, int[][] alloc, int[] available){
+        this.processes = processes;
+        this.resources = resources;
+        this.max = max;
+        this.alloc = alloc;
+        this.available = available;
+        this.need = new int[processes][resources];
+    }
+    public void calcNeed(){
         for(int i = 0; i < processes; i++){
             for(int j = 0; j < resources; j++){
-                alloc[i][j] = test.nextInt();
+                need[i][j] = max[i][j] - alloc[i][j];
             }
         }
-        int[][] max = new int[processes][resources];
-        System.out.println("Enter the Maximum Matrix:");
+    }
+    public void printNeed(){
+        System.out.println("The Need Matrix:");
         for(int i = 0; i < processes; i++){
             for(int j = 0; j < resources; j++){
-                max[i][j] = test.nextInt();
-            }
-        }
-        int[] available = new int[resources];
-        System.out.println("Enter the Available Resources Vector:");
-        for(int i = 0; i < resources; i++){
-            available[i] = test.nextInt();
-        }
-        
-        algorithm obj= new algorithm(processes, resources, max, alloc, available);
-        
-        obj.calcNeed();
-        obj.printNeed();
-        
-        if(obj.isSafe()){
-            System.out.println("System in SAFE state.");
-            System.out.print("The safety sequence is as follows: ");
-            for(int i = 0; i < processes; i++){
-                System.out.print("P" + obj.sequence[i]);
-                if(i != processes - 1){
-                    System.out.print(" -> ");
-                }
+                System.out.print(need[i][j] + " ");
             }
             System.out.println();
-            
-            obj.resourceRelease();
         }
-        else{
-            System.out.println("System in UNSAFE state. Cannot execute sequence.");
-            return;
-        }        
-        System.out.println("Request a new process? (Enter 0 or 1)");
-        byte requestInput = test.nextByte();
-        if(requestInput == 0){
-            System.out.println("Program terminated.");
-        }
-        else if(requestInput == 1){
-            System.out.print("Enter process number: ");
-            int processID = test.nextInt();
-            System.out.print("Enter request details: ");
-            int[] request = new int[resources];
-            for(int i = 0; i < resources; i++){
-                request[i] = test.nextInt();
+    }
+    public boolean request(int processID, int[] request){
+        for (int i = 0; i < resources; i++){
+            if (request[i] > need[processID][i]){
+                System.out.println("INVALID request. Request cannot be greater than need.");
+                return false;
             }
-            obj.request(processID, request);
+        }
+        for (int i = 0; i < resources; i++){
+            if (request[i] > available[i]){
+                System.out.println("INVALID request. Resources not available.");
+                return false;
+            }
+        }
+        for (int i = 0; i < resources; i++){
+            alloc[processID][i] += request[i];
+            available[i] -= request[i];
+            need[processID][i] -= request[i];
+        }
+        if(isSafe()){
+            System.out.println("System remains in safe state. Request granted.");
+            return true;
         }
         else{
-            System.out.println("Process terminated. Invalid input.");
+            for(int i = 0; i < resources; i++){
+                alloc[processID][i] -= request[i];
+                available[i] += request[i];
+                need[processID][i] += request[i];
+            }
+            System.out.println("Request may lead to unsafe state. Request denied.");
+            return false;
         }
+    }
+    public boolean isSafe(){
+        int[] tempSeq = new int[processes];
+        finish = new boolean[processes];
+        int[] work = new int[resources];
+        for(int i = 0; i < resources; i++){
+            work[i] = available[i];
+        }
+        int counter = 0;
+        while (counter < processes){
+            boolean found = false;
+            for (int a = 0; a < processes; a++){
+                if (!finish[a]){
+                    int b;
+                    for (b = 0; b < resources; b++){
+                        if (need[a][b] > work[b]){
+                            break;
+                        }
+                    }
+                    if (b == resources){
+                        for (int c = 0; c < resources; c++){
+                            work[c] += alloc[a][c];
+                        }
+                        tempSeq[counter++] = a;
+                        finish[a] = true;
+                        found = true;
+                    }
+                }
+            }
+            if (!found){
+                return false;
+            }
+        }
+        sequence = tempSeq;
+        return true;
+    }
+    public void resourceRelease(){
+        if(sequence == null || sequence.length == 0){
+            System.out.println("Execution halted. Safe sequence unverified.");
+            return;
+        }
+        for(int i = 0; i < processes; i++){
+            int processID = sequence[i];
+            System.out.println("Releasing allocated resources for P" + processID);
+            for(int j = 0; j < resources; j++){
+                available[j] += alloc[processID][j];
+                alloc[processID][j] = 0;
+            }
+            System.out.print("  Available Vector State: ");
+            for(int j = 0; j < resources; j++){
+                System.out.print(available[j] + " ");
+            }
+            System.out.println();
+        }
+        System.out.println("System resource reclamation complete.");
     }
 }
