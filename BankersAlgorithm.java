@@ -27,10 +27,7 @@ public class BankersAlgorithm{
         for(int i = 0; i < resources; i++){
             available[i] = test.nextInt();
         }
-        int[] availCopy = new int[resources];
-        for(int i = 0; i < available.length; i++){
-            availCopy[i] = available[i];
-        }
+
         algorithm obj = new algorithm(processes, resources, max, alloc, available);
         
         obj.calcNeed();
