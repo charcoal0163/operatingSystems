@@ -8,19 +8,21 @@ class algorithm{
     int[] available;
     boolean[] finish;
     int[] sequence;
+    int[] totalInst;
 
-    public algorithm(int processes, int resources, int[][] max, int[][] alloc, int[] available){
+    public algorithm(int processes, int resources, int[][] max, int[][] alloc, int[] available, int[] totalInst){
         this.processes = processes;
         this.resources = resources;
         this.max = max;
         this.alloc = alloc;
         this.available = available;
+        this.totalInst = totalInst;
         this.need = new int[processes][resources];
     }
-    public void calcNeed(){
+    public void calcNeed(int[][] maximum, int[][] allocation){
         for(int i = 0; i < processes; i++){
             for(int j = 0; j < resources; j++){
-                need[i][j] = max[i][j] - alloc[i][j];
+                need[i][j] = maximum[i][j] - allocation[i][j];
             }
         }
     }
@@ -28,31 +30,39 @@ class algorithm{
         System.out.println("The Need Matrix:");
         for(int i = 0; i < processes; i++){
             for(int j = 0; j < resources; j++){
-                System.out.print(need[i][j] + " ");
+                System.out.print(need[i][j] + "\t");
             }
             System.out.println();
         }
     }
     public boolean request(int processID, int[] request){
-        for (int i = 0; i < resources; i++){
-            if (request[i] > need[processID][i]){
+        for(int i = 0; i < resources; i++){
+            if(request[i] > need[processID][i]){
                 System.out.println("INVALID request. Request cannot be greater than need.");
                 return false;
             }
         }
-        for (int i = 0; i < resources; i++){
-            if (request[i] > available[i]){
+        for(int i = 0; i < resources; i++){
+            if(request[i] > available[i]){
                 System.out.println("INVALID request. Resources not available.");
                 return false;
             }
         }
-        for (int i = 0; i < resources; i++){
+        for(int i = 0; i < resources; i++){
             alloc[processID][i] += request[i];
             available[i] -= request[i];
             need[processID][i] -= request[i];
         }
-        if(isSafe()){
+        if(isSafe(alloc)){
             System.out.println("System remains in safe state. Request granted.");
+            System.out.print("The safety sequence is as follows: ");
+            for(int i = 0; i < processes; i++){
+                System.out.print("P" + sequence[i]);
+                if(i != processes - 1){
+                    System.out.print(" -> ");
+                }
+            }
+            System.out.println();
             return true;
         }
         else{
@@ -65,7 +75,7 @@ class algorithm{
             return false;
         }
     }
-    public boolean isSafe(){
+    public boolean isSafe(int[][] allocation){
         int[] tempSeq = new int[processes];
         finish = new boolean[processes];
         int[] work = new int[resources];
@@ -73,19 +83,19 @@ class algorithm{
             work[i] = available[i];
         }
         int counter = 0;
-        while (counter < processes){
+        while(counter < processes){
             boolean found = false;
-            for (int a = 0; a < processes; a++){
-                if (!finish[a]){
+            for(int a = 0; a < processes; a++){
+                if(!finish[a]){
                     int b;
-                    for (b = 0; b < resources; b++){
-                        if (need[a][b] > work[b]){
+                    for(b = 0; b < resources; b++){
+                        if(need[a][b] > work[b]){
                             break;
                         }
                     }
-                    if (b == resources){
-                        for (int c = 0; c < resources; c++){
-                            work[c] += alloc[a][c];
+                    if(b == resources){
+                        for(int c = 0; c < resources; c++){
+                            work[c] += allocation[a][c];
                         }
                         tempSeq[counter++] = a;
                         finish[a] = true;
@@ -93,7 +103,7 @@ class algorithm{
                     }
                 }
             }
-            if (!found){
+            if(!found){
                 return false;
             }
         }
@@ -114,10 +124,18 @@ class algorithm{
             }
             System.out.print("  Available Vector State: ");
             for(int j = 0; j < resources; j++){
-                System.out.print(available[j] + " ");
+                System.out.print(available[j] + "\t");
             }
             System.out.println();
+            System.out.println();
         }
-        System.out.println("System resource reclamation complete.");
+        for(int i = 0; i < resources; i++){
+            if(totalInst[i] != available[i]){
+                System.out.println("There's something wrong.");
+                return;
+            }
+        }
+        System.out.println("Total number of instances is correct.");
+        System.out.println("System resource reallocation and release complete.");
     }
 }
