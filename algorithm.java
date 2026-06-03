@@ -124,9 +124,8 @@ class algorithm{
             }
             System.out.print("  Available Vector State: ");
             for(int j = 0; j < resources; j++){
-                System.out.print(available[j] + "\t");
+                System.out.print(available[j] + "  ");
             }
-            System.out.println();
             System.out.println();
         }
         for(int i = 0; i < resources; i++){
